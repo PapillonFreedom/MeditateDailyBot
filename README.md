@@ -1,22 +1,22 @@
-//# @MeditateDailyBot
-//Bot for daily meditation now in Telegram!
+//@MeditateDailyBot - Bot for daily meditation now in Telegram!
 
-using System;
-using System.Collections.Immutable;
-using System.Linq.Expressions;
-using System.Threading;
-using Telegram.Bot;
-using Telegram.Bot.Args;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
+    using System;
+    using System.Collections.Immutable;
+    using System.Linq.Expressions;
+    using System.Threading;
+    using Telegram.Bot;
+    using Telegram.Bot.Args;
+    using Telegram.Bot.Types;
+    using Telegram.Bot.Types.Enums;
+    using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Test_Bot {
-    internal static class Program {
+    namespace Test_Bot {
+      internal static class Program {
         private static ITelegramBotClient _meditateDailyBot;
 
+
         private static void Main() {
-            _meditateDailyBot = new TelegramBotClient("");
+            _meditateDailyBot = new TelegramBotClient("YOUR_TOKEN_HERE");
 
          var mePappibot = _meditateDailyBot.GetMeAsync().Result;
 
