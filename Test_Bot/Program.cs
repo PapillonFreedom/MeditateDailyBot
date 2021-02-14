@@ -13,7 +13,7 @@ namespace Test_Bot {
         private static ITelegramBotClient _meditateDailyBot;
 
         private static void Main() {
-            _meditateDailyBot = new TelegramBotClient("");
+            _meditateDailyBot = new TelegramBotClient("YOUR_TOKEN_HERE");
 
          var mePappibot = _meditateDailyBot.GetMeAsync().Result;
 
@@ -82,6 +82,3 @@ namespace Test_Bot {
         }
     }
 }
-//https://upload.wikimedia.org/wikipedia/commons/a/ab/Alexander_Graham_Bell%27s_Voice.ogg
-//http://aftamat4ik.ru/wp-content/uploads/2017/05/mongol-shuudan_-_kozyr-nash-mandat.mp3
-//http://aftamat4ik.ru/wp-content/uploads/2017/05/bb.mp4
