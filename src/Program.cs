@@ -16,10 +16,12 @@ namespace MeditateBotDev {
         [Obsolete("Obsolete")]
         private static void Main()
         {
-            string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";
+            //string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
+            string tokenFilePath = "/home/ubuntu/token.txt";  //prod
+
             string botToken = null;
-            
-            if (System.IO.File.Exists(tokenFilePath))
+
+            if (File.Exists(tokenFilePath))
             { 
                 botToken = File.ReadAllText(tokenFilePath).Trim();
                 Console.WriteLine("File token.txt {0} exists.", botToken);
@@ -78,7 +80,7 @@ namespace MeditateBotDev {
             {
                 case null:
                     return;
-                
+
                 case "1":
                 case "5":
                 case "10":
@@ -88,17 +90,12 @@ namespace MeditateBotDev {
                 case "45":
                 case "60":
                     // в ответ на кнопку N выводим аудио в N минут
-                    await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, ($"https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/{e.Message.Text}min.ogg"), $"Have a nice meditation for next {e.Message.Text} minutes");
-                    break;
-                case "test 20":
-                    string? voicePathFile = "/home/papillon/Projects/MeditateDailyBot/sounds/20min.ogg";
-                   //string? voicePathFile = "https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/20min.ogg";
-                    // в ответ на кнопку N выводим аудио в N минут
-                   // await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, $"https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/20min.ogg","20mins",default,null,1204);
-                        await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, new InputOnlineFile(File.Open(voicePathFile, FileMode.Open)),"20mins",default,null,1204);
+                    //var voicePathFile = $"/home/{user}/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
+                    var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
+                    await _meditateDailyBot.SendVoiceAsync(e.Message.Chat,
+                      new InputOnlineFile(File.Open(voicePathFile, FileMode.Open)), $"{e.Message.Text}mins", default, null,Convert.ToInt32(e.Message.Text) * 60 + 4);
 
                     break;
-                
                 case "/start":
                     await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
                     break;
