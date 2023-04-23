@@ -8,6 +8,7 @@ Resurrect legacy code to actual state:
 Describe HowToUse by command /help in Bot
 [v]Rebuild all sound files: now they store locally on server, calls not by github link (because audion doesnt play correct on some devices)
 
+Aborted (core dumped) when using server sound files
 
 Test for stable work
 Deploy to AWS
