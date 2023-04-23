@@ -1,11 +1,12 @@
-//@MeditateDailyBot - Bot for daily meditation now in Telegram!
-//Nuget ~2021 year
-
+﻿//@MeditateDailyBot - Bot for daily meditation now in Telegram!
+//Place Your token to file token.txt and point path in tokenFilePath
 
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
+using File = System.IO.File;
 
 namespace MeditateBotDev {
       internal static class Program {
@@ -13,13 +14,28 @@ namespace MeditateBotDev {
 
 
         [Obsolete("Obsolete")]
-        private static void Main() {
-            _meditateDailyBot = new TelegramBotClient("YOUR_TOKEN_HERE");
+        private static void Main()
+        {
+            string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";
+            string botToken = null;
+            
+            if (System.IO.File.Exists(tokenFilePath))
+            { 
+                botToken = File.ReadAllText(tokenFilePath).Trim();
+                Console.WriteLine("File token.txt {0} exists.", botToken);
+            }
+            else
+            {
+                Console.WriteLine("File token.txt not exists.");
+                Environment.Exit(0);
+            }
+            
+            _meditateDailyBot = new TelegramBotClient(botToken);
 
-         User mePappibot = _meditateDailyBot.GetMeAsync().Result;
+            User botName = _meditateDailyBot.GetMeAsync().Result;
 
             Console.WriteLine(
-                $"Session started. Bot {mePappibot.FirstName} is UP."
+                $"Session started. Bot {botName.FirstName} is UP."
             );
 
             if (_meditateDailyBot != null)
@@ -33,14 +49,15 @@ namespace MeditateBotDev {
         
         private static async void Bot_OnMessage(object sender, MessageEventArgs e)
         {
-            if (e.Message.Text == "/start")
+            /*if (e.Message.Text == "/start")
             {
                 await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat.Id, "Okey, Let's do some meditation!", default, null, true, true);
-            }
-            //получить данные о пользователях, которые воспользовались ботом
+            }*/
+            
+            //получаем данные о пользователях, которые воспользовались ботом
             if (e.Message.Text != null)
             {
-                Console.WriteLine($"At {e.Message.Date} In chat {e.Message.Chat.Id} was a new User: {e.Message.From.Username}, {e.Message.From.Id}, {e.Message.From.FirstName}, {e.Message.From.LastName}.");
+                Console.WriteLine($"At {e.Message.Date} In chat {e.Message.Chat.Id} was a new User: {e.Message.From.FirstName}, {e.Message.From.LastName}.");
             }
 
             //начало создания клавиатуры предлагаемых вариантов времени
@@ -54,7 +71,7 @@ namespace MeditateBotDev {
                 }
             };
             //Строка ниже регулярно обновляет экранную клавиатуру с выбором минут. Если её закомментировать, то клавиатура у новых пользователей не появится
-            await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat.Id, "Just play audio below:", default, null, true, false, 0, false, rkm);
+            //await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat.Id, "Just play audio below:", default, null, true, false, 0, false, rkm);
             
             //сами варианты для выбора
             switch (e.Message.Text)
@@ -73,14 +90,23 @@ namespace MeditateBotDev {
                     // в ответ на кнопку N выводим аудио в N минут
                     await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, ($"https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/{e.Message.Text}min.ogg"), $"Have a nice meditation for next {e.Message.Text} minutes");
                     break;
+                case "test 20":
+                    string? voicePathFile = "/home/papillon/Projects/MeditateDailyBot/sounds/20min.ogg";
+                   //string? voicePathFile = "https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/20min.ogg";
+                    // в ответ на кнопку N выводим аудио в N минут
+                   // await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, $"https://github.com/PapillonFreedom/MeditateDailyBot/raw/master/sounds/20min.ogg","20mins",default,null,1204);
+                        await _meditateDailyBot.SendVoiceAsync(e.Message.Chat, new InputOnlineFile(File.Open(voicePathFile, FileMode.Open)),"20mins",default,null,1204);
+
+                    break;
                 
                 case "/start":
-                    await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
+                    await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
                     break;
                 default:
                     // ответ на любое другое значение просим ввести корректное значение
                     await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support. Please, select the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
                     break;
+                
                 
             }
             //конец создания клавиатуры предлагаемых вариантов времени
