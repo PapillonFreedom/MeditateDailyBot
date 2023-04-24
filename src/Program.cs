@@ -3,6 +3,7 @@
 
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -89,16 +90,26 @@ namespace MeditateBotDev {
                 case "30":
                 case "45":
                 case "60":
+                    
+                    
                     // в ответ на кнопку N выводим аудио в N минут
-                    //var voicePathFile = $"/home/{user}/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
+                    //var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
                     var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
-                    await _meditateDailyBot.SendVoiceAsync(e.Message.Chat,
-                      new InputOnlineFile(File.Open(voicePathFile, FileMode.Open)), $"{e.Message.Text}mins", default, null,Convert.ToInt32(e.Message.Text) * 60 + 4);
 
-                    break;
+                    await using (FileStream fileStream = new FileStream(voicePathFile, FileMode.Open))
+                    {
+                        InputOnlineFile inputOnlineFile = new InputOnlineFile(fileStream);
+                        await _meditateDailyBot.SendVoiceAsync(e.Message.Chat,
+                            inputOnlineFile, $"{e.Message.Text}mins", default, null,
+                            Convert.ToInt32(e.Message.Text) * 60 + 4);
+                        fileStream.Dispose();
+                        break;
+                    }
+                    
                 case "/start":
                     await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
                     break;
+                
                 default:
                     // ответ на любое другое значение просим ввести корректное значение
                     await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support. Please, select the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
