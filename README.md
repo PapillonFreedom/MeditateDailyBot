@@ -5,6 +5,8 @@ Resurrect legacy code to actual state:
     [v]deleted message "just play audio below"
     try to inspect how to calls files via telegram file id
 
+Add custom minutes by user via sox-implementation on backend side
+
 Describe HowToUse by command /help in Bot
 [v]Rebuild all sound files: now they store locally on server, calls not by github link (because audion doesnt play correct on some devices)
 
