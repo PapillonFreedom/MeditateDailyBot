@@ -3,7 +3,7 @@
 
 using Telegram.Bot;
 using Telegram.Bot.Args;
-using Telegram.Bot.Requests;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -17,10 +17,10 @@ namespace MeditateBotDev {
         [Obsolete("Obsolete")]
         private static void Main()
         {
-            //string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
-            string tokenFilePath = "/home/ubuntu/token.txt";  //prod
+            //const string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
+            const string tokenFilePath = "/home/ubuntu/token.txt"; //prod
 
-            string botToken = null;
+            string? botToken = null;
 
             if (File.Exists(tokenFilePath))
             { 
@@ -37,46 +37,36 @@ namespace MeditateBotDev {
 
             User botName = _meditateDailyBot.GetMeAsync().Result;
 
-            Console.WriteLine(
-                $"Session started. Bot {botName.FirstName} is UP."
-            );
-
-            if (_meditateDailyBot != null)
-            {
-                _meditateDailyBot.OnMessage += Bot_OnMessage!;
-                _meditateDailyBot.StartReceiving();
-            }
+            Console.WriteLine($"Session started. Bot {botName.FirstName} is UP.");
+            
+            _meditateDailyBot.OnMessage += Bot_OnMessage;
+            _meditateDailyBot.StartReceiving();
+            
 
             Thread.Sleep(int.MaxValue);
         }
         
-        private static async void Bot_OnMessage(object sender, MessageEventArgs e)
+        [Obsolete("Obsolete")]
+        private static async void Bot_OnMessage(object? sender, MessageEventArgs e)
         {
-            /*if (e.Message.Text == "/start")
-            {
-                await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat.Id, "Okey, Let's do some meditation!", default, null, true, true);
-            }*/
-            
-            //получаем данные о пользователях, которые воспользовались ботом
+            //get data on users who have used the bot
             if (e.Message.Text != null)
             {
                 Console.WriteLine($"At {e.Message.Date} In chat {e.Message.Chat.Id} was a new User: {e.Message.From.FirstName}, {e.Message.From.LastName}.");
             }
 
-            //начало создания клавиатуры предлагаемых вариантов времени
+            //creating a keyboard of the proposed time options
             var rkm = new ReplyKeyboardMarkup
             {
-                Keyboard = new KeyboardButton[][]
+                Keyboard = new[]
                 {
-                   new KeyboardButton[] {new KeyboardButton("1"), new KeyboardButton("5"), new KeyboardButton("10")},
-                   new KeyboardButton[] {new KeyboardButton("15"), new KeyboardButton("20")},
-                   new KeyboardButton[] {new KeyboardButton("30"), new KeyboardButton("45"), new KeyboardButton("60")}
+                   new[] {new KeyboardButton("1"), new KeyboardButton("5"), new KeyboardButton("10")},
+                   new[] {new KeyboardButton("15"), new KeyboardButton("20")},
+                   new[] {new KeyboardButton("30"), new KeyboardButton("45"), new KeyboardButton("60")}
                 }
             };
-            //Строка ниже регулярно обновляет экранную клавиатуру с выбором минут. Если её закомментировать, то клавиатура у новых пользователей не появится
-            //await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat.Id, "Just play audio below:", default, null, true, false, 0, false, rkm);
-            
-            //сами варианты для выбора
+ 
+            // start of the options for choosing
             switch (e.Message.Text)
             {
                 case null:
@@ -90,34 +80,82 @@ namespace MeditateBotDev {
                 case "30":
                 case "45":
                 case "60":
-                    
-                    
-                    // в ответ на кнопку N выводим аудио в N минут
-                    //var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
-                    var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
 
-                    await using (FileStream fileStream = new FileStream(voicePathFile, FileMode.Open))
+                    // in response to button N, take audio in N minutes
+                    //var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
+                    //var audioPathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.mp3"; //test
+
+                    var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
+                    var audioPathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.mp3"; //prod
+
+                    try
                     {
-                        InputOnlineFile inputOnlineFile = new InputOnlineFile(fileStream);
-                        await _meditateDailyBot.SendVoiceAsync(e.Message.Chat,
+                        // try to send a voice message
+                        await using var fileStream = new FileStream(voicePathFile, FileMode.Open);
+                        var inputOnlineFile = new InputOnlineFile(fileStream);
+                        await _meditateDailyBot!.SendVoiceAsync(e.Message.Chat,
                             inputOnlineFile, $"{e.Message.Text}mins", default, null,
                             Convert.ToInt32(e.Message.Text) * 60 + 4);
-                        fileStream.Dispose();
+                        await fileStream.DisposeAsync();
                         break;
                     }
-                    
+                    catch (ApiRequestException ex)
+                    {
+                        if (ex.Message.Contains("Bad Request: VOICE_MESSAGES_FORBIDDEN"))
+                        {
+                            try
+                            {
+                                // try to send an audio message
+                                await using var fileStream = new FileStream(audioPathFile, FileMode.Open);
+                                var inputOnlineFile = new InputOnlineFile(fileStream);
+                                await _meditateDailyBot!.SendAudioAsync(e.Message.Chat,
+                                    inputOnlineFile, null, default, null,
+                                    Convert.ToInt32(e.Message.Text) * 60 + 4, "Have a nice meditation", $"{e.Message.Text}mins");
+                                await fileStream.DisposeAsync();
+                                Console.WriteLine("Voice messages forbidden");
+                            }
+                            catch (ApiRequestException audioEx)
+                            {
+                                if (audioEx.Message.Contains("Bad Request: AUDIO_FILES_FORBIDDEN"))
+                                {
+                                    // if the user has banned the receipt of voice messages and audio files
+                                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat,
+                                        "The user banned the receipt of voice messages and audio files. Please change the privacy settings in Telegram so that the bot can send voice messages and audio files.");
+                                    
+                                    Console.WriteLine("Voice & Audio messages forbidden");
+
+                                }
+                                else
+                                {
+                                    // if another error is obtained when sending an audio file
+                                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat,
+                                        "Unexpected Error 1. Please contact with developer via @Naghual.");
+
+                                    Console.WriteLine("Unexpected Error 1 in sending audio message");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // if another error is received when sending a voice message
+                            await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat,
+                                "Unexpected Error 2. Please contact with developer via @Naghual.");
+
+                            Console.WriteLine("Unexpected Error 2 in sending audio message");
+                        }
+                        break;
+                    }
+
                 case "/start":
-                    await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
+                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, "Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
                     break;
                 
                 default:
-                    // ответ на любое другое значение просим ввести корректное значение
-                    await _meditateDailyBot.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support. Please, select the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
+                    // the answer to any other meaning is asked to introduce the correct value
+                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support. Please, select the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
                     break;
-                
-                
             }
-            //конец создания клавиатуры предлагаемых вариантов времени
+            // end of the options for choosing
         }
     }
     }
