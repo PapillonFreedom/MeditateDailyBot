@@ -17,8 +17,8 @@ namespace MeditateBotDev {
         [Obsolete("Obsolete")]
         private static void Main()
         {
-            //const string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
-            const string tokenFilePath = "/home/ubuntu/token.txt"; //prod
+            const string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
+            //const string tokenFilePath = "/home/ubuntu/token.txt"; //prod
 
             string? botToken = null;
 
@@ -82,11 +82,11 @@ namespace MeditateBotDev {
                 case "60":
 
                     // in response to button N, take audio in N minutes
-                    //var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
-                    //var audioPathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.mp3"; //test
+                    var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
+                    var audioPathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.mp3"; //test
 
-                    var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
-                    var audioPathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.mp3"; //prod
+                    //var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
+                    //var audioPathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.mp3"; //prod
 
                     try
                     {
@@ -148,6 +148,16 @@ namespace MeditateBotDev {
 
                 case "/start":
                     await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, "Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
+                    break;
+                
+                case "/help":
+                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, 
+                        "Hello, my Friend. This Bot may help You in Your meditation." +
+                        "How it works: choose count of minutes, which You would like to spend on Your meditation and enter this number in chat or click on the keyboard." +
+                        "Then, You will receive an audio file, which contains absolutely silence, but have the start and end notifications." +
+                        "The point, that You may start Your meditation by play this audio file, blocking Your device and be quiet, because when timer is over, You will hear an end notification." +
+                        "Telegram allows play audio in background, so it looks very comfortable, I hope." +
+                        "For any questions and proposals contact with me: @Naghual. Thank You and have a great relax time");
                     break;
                 
                 default:
