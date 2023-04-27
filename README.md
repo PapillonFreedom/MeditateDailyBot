@@ -2,8 +2,10 @@
 TODO:
 
 Resurrect legacy code to actual state:
-    [v]deleted message "just play audio below"
-    try to inspect how to calls files via telegram file id
+
+   1. [v]deleted message "just play audio below"
+   
+   2. try to inspect how to calls files via telegram file id
 
 Add custom minutes by user via sox-implementation on backend side
 
@@ -14,8 +16,13 @@ Add custom minutes by user via sox-implementation on backend side
 [v]Aborted (core dumped) when using server sound files
 
 Test for stable work
+
 [v]Deploy to AWS
+
 Make docker-container with ready-to-deploy project
+
 k8s?
+
 Ansible?
+
 Terraform?
