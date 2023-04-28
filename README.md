@@ -15,7 +15,9 @@ Add custom minutes by user via sox-implementation on backend side
 
 [v]Aborted (core dumped) when using server sound files
 
-Test for stable work
+[v]Test for stable work
+
+Add gif for /help describing
 
 [v]Deploy to AWS
 
