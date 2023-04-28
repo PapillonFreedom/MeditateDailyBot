@@ -12,27 +12,35 @@ using File = System.IO.File;
 namespace MeditateBotDev {
       internal static class Program {
         private static ITelegramBotClient? _meditateDailyBot;
-
+        private static string? _pathFile;
 
         [Obsolete("Obsolete")]
-        private static void Main()
+        public static void Main()
         {
-            const string tokenFilePath = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
-            //const string tokenFilePath = "/home/ubuntu/token.txt"; //prod
 
+            const string test = "/home/papillon/Projects/MeditateBotDev/token.txt";  //test
+            const string prod = "/home/ubuntu/token.txt"; //prod
             string? botToken = null;
-
-            if (File.Exists(tokenFilePath))
-            { 
-                botToken = File.ReadAllText(tokenFilePath).Trim();
-                Console.WriteLine("File token.txt {0} exists.", botToken);
+            _pathFile = "";
+            
+            if (File.Exists(test))
+            {
+                botToken = File.ReadAllText(test).Trim();
+                Console.WriteLine("File token.txt {0} exists.\n Current ENV is TEST", botToken);
+                _pathFile = "/home/papillon/Projects/MeditateDailyBot/sounds/";
+            }
+            else if (File.Exists(prod))
+            {
+                botToken = File.ReadAllText(prod).Trim();
+                Console.WriteLine("File token.txt {0} exists.\n Current ENV is PROD", botToken);
+                _pathFile = "/home/ubuntu/sounds/";
             }
             else
             {
-                Console.WriteLine("File token.txt not exists.");
+                Console.WriteLine("File token.txt not exists on the test or prod paths.");
                 Environment.Exit(0);
             }
-            
+
             _meditateDailyBot = new TelegramBotClient(botToken);
 
             User botName = _meditateDailyBot.GetMeAsync().Result;
@@ -41,7 +49,6 @@ namespace MeditateBotDev {
             
             _meditateDailyBot.OnMessage += Bot_OnMessage;
             _meditateDailyBot.StartReceiving();
-            
 
             Thread.Sleep(int.MaxValue);
         }
@@ -49,10 +56,12 @@ namespace MeditateBotDev {
         [Obsolete("Obsolete")]
         private static async void Bot_OnMessage(object? sender, MessageEventArgs e)
         {
+            
+            
             //get data on users who have used the bot
             if (e.Message.Text != null)
             {
-                Console.WriteLine($"At {e.Message.Date} In chat {e.Message.Chat.Id} was a new User: {e.Message.From.FirstName}, {e.Message.From.LastName}.");
+                Console.WriteLine($"At {e.Message.Date} In chat {e.Message.Chat.Id} was a new call by User: {e.Message.From.FirstName}, {e.Message.From.LastName}.");
             }
 
             //creating a keyboard of the proposed time options
@@ -82,11 +91,8 @@ namespace MeditateBotDev {
                 case "60":
 
                     // in response to button N, take audio in N minutes
-                    var voicePathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.ogg"; //test
-                    var audioPathFile = $"/home/papillon/Projects/MeditateDailyBot/sounds/{e.Message.Text}min.mp3"; //test
-
-                    //var voicePathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.ogg"; //prod
-                    //var audioPathFile = $"/home/ubuntu/sounds/{e.Message.Text}min.mp3"; //prod
+                    var voicePathFile = $"{_pathFile+e.Message.Text}min.ogg";
+                    var audioPathFile = $"{_pathFile+e.Message.Text}min.mp3";
 
                     try
                     {
@@ -120,7 +126,7 @@ namespace MeditateBotDev {
                                 {
                                     // if the user has banned the receipt of voice messages and audio files
                                     await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat,
-                                        "The user banned the receipt of voice messages and audio files. Please change the privacy settings in Telegram so that the bot can send voice messages and audio files.");
+                                        "The user blocked the receipt of voice messages and audio files.\nPlease change the privacy settings in Telegram so that the bot can send voice messages and audio files.");
                                     
                                     Console.WriteLine("Voice & Audio messages forbidden");
 
@@ -147,22 +153,22 @@ namespace MeditateBotDev {
                     }
 
                 case "/start":
-                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, "Please, enter the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
+                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, "Please, enter the following count of minutes:\n1, 5, 10, 15, 20, 30, 45, 60",default, null, true, false, 0, false, rkm);
                     break;
                 
                 case "/help":
                     await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, 
                         "Hello, my Friend. This Bot may help You in Your meditation." +
-                        "How it works: choose count of minutes, which You would like to spend on Your meditation and enter this number in chat or click on the keyboard." +
-                        "Then, You will receive an audio file, which contains absolutely silence, but have the start and end notifications." +
-                        "The point, that You may start Your meditation by play this audio file, blocking Your device and be quiet, because when timer is over, You will hear an end notification." +
-                        "Telegram allows play audio in background, so it looks very comfortable, I hope." +
-                        "For any questions and proposals contact with me: @Naghual. Thank You and have a great relax time");
+                        "\n\nHow it works: choose count of minutes, which You would like to spend on Your meditation and enter this number in chat or click on the keyboard." +
+                        "\n\nThen, You will receive an audio file, which contains absolutely silence, but have the start and end notifications." +
+                        "\n\nThe point, that You may start Your meditation by play this audio file, blocking Your device and be quiet, because when timer is over, You will hear an end notification." +
+                        "\n\nTelegram allows play audio in background, so it looks very comfortable, I hope." +
+                        "\n\nFor any questions and proposals contact with me: @Naghual. Thank You and have a great relax time.");
                     break;
                 
                 default:
                     // the answer to any other meaning is asked to introduce the correct value
-                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support. Please, select the following count of minutes: 1, 5, 10, 15, 20, 30, 45, 60");
+                    await _meditateDailyBot!.SendTextMessageAsync(e.Message.Chat, $"{e.Message.Text} is not support.\nPlease, select the following count of minutes:\n1, 5, 10, 15, 20, 30, 45, 60");
                     break;
             }
             // end of the options for choosing
