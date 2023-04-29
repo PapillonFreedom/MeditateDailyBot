@@ -1,6 +1,7 @@
 ﻿//@MeditateDailyBot - Bot for daily meditation now in Telegram!
 //Place Your token to file token.txt and point path in tokenFilePath
 
+using System.Diagnostics;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
@@ -26,13 +27,13 @@ namespace MeditateBotDev {
             if (File.Exists(test))
             {
                 botToken = File.ReadAllText(test).Trim();
-                Console.WriteLine("File token.txt {0} exists.\n Current ENV is TEST", botToken);
+                Console.WriteLine("File token.txt {0} exists.\nCurrent ENV is TEST", botToken);
                 _pathFile = "/home/papillon/Projects/MeditateDailyBot/sounds/";
             }
             else if (File.Exists(prod))
             {
                 botToken = File.ReadAllText(prod).Trim();
-                Console.WriteLine("File token.txt {0} exists.\n Current ENV is PROD", botToken);
+                Console.WriteLine("File token.txt {0} exists.\nCurrent ENV is PROD", botToken);
                 _pathFile = "/home/ubuntu/sounds/";
             }
             else
@@ -52,7 +53,16 @@ namespace MeditateBotDev {
 
             Thread.Sleep(int.MaxValue);
         }
-        
+
+        private static void CreateSound()
+        {
+            
+            var process = new Process();
+            process.StartInfo.FileName = "/usr/bin/sox"; // Путь до исполняемого файла sox
+            process.StartInfo.Arguments = "file1.wav file2.wav output.wav"; // Аргументы запуска sox
+            
+        }
+
         [Obsolete("Obsolete")]
         private static async void Bot_OnMessage(object? sender, MessageEventArgs e)
         {
@@ -118,6 +128,7 @@ namespace MeditateBotDev {
                                     inputOnlineFile, null, default, null,
                                     Convert.ToInt32(e.Message.Text) * 60 + 4, "Have a nice meditation", $"{e.Message.Text}mins");
                                 await fileStream.DisposeAsync();
+                                
                                 Console.WriteLine("Voice messages forbidden");
                             }
                             catch (ApiRequestException audioEx)
@@ -129,7 +140,6 @@ namespace MeditateBotDev {
                                         "The user blocked the receipt of voice messages and audio files.\nPlease change the privacy settings in Telegram so that the bot can send voice messages and audio files.");
                                     
                                     Console.WriteLine("Voice & Audio messages forbidden");
-
                                 }
                                 else
                                 {
